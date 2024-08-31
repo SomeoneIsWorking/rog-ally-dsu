@@ -2,6 +2,7 @@ using System.IO.Hashing;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using Ryujinx.Input.Motion.CemuHook.Protocol;
 using SDL3;
 using SharpDX.XInput;
 using static SDL3.SDL3;
@@ -15,6 +16,23 @@ class DSUServer
     private IPEndPoint remoteEndPoint;
     private Controller xboxController;
     private bool isControllerConnected;
+    public const uint Magic = 0x43555344; // DSUC
+    public const ushort Version = 1001;
+
+
+    private static Header GenerateHeader(int clientId)
+    {
+        Header header = new()
+        {
+            Id = (uint)clientId,
+            MagicString = Magic,
+            Version = Version,
+            Length = 0,
+        };
+
+        return header;
+    }
+
 
     public DSUServer()
     {
