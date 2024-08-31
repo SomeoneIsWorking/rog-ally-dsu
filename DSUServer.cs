@@ -215,7 +215,7 @@ class DSUServer
         writer.Write(BitConverter.GetBytes(gyroPitch)); // Gyroscope pitch
         writer.Write(BitConverter.GetBytes(gyroYaw)); // Gyroscope yaw
         writer.Write(BitConverter.GetBytes(gyroRoll)); // Gyroscope roll
-
+        Console.WriteLine($"Accel: {accelX}, {accelY}, {accelZ}, Gyro: {gyroPitch}, {gyroYaw}, {gyroRoll}");
         writer.Flush();
         byte[] response = memoryStream.ToArray();
         CRC32(response);
