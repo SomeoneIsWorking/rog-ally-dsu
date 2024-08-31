@@ -111,6 +111,7 @@ class DSUServer
         Array.Copy(new byte[6], 0, response, 24, 6); // MAC address
         response[30] = 4; // Battery status (High)
         response[31] = 0; // Zero byte
+        CRC32(response);
 
         udpClient.Send(response, response.Length, remoteEndPoint);
     }
@@ -123,6 +124,12 @@ class DSUServer
 
         using var memoryStream = new MemoryStream();
         using var writer = new BinaryWriter(memoryStream);
+        writer.Write(Encoding.ASCII.GetBytes("DSUS")); // Magic string
+        writer.Write((ushort)ProtocolVersion); // Protocol version
+        writer.Write((ushort)80); // Packet size
+        writer.Write((uint)0); // Zero
+        writer.Write((uint)1); // Server ID
+        writer.Write((uint)0x100002); // Message type
 
         // Example controller data
         writer.Write((byte)0); // Slot
@@ -144,7 +151,7 @@ class DSUServer
         buttons |= (byte)((gamepad.Buttons & GamepadButtonFlags.RightThumb) != 0 ? 32 : 0); // R3
         buttons |= (byte)((gamepad.Buttons & GamepadButtonFlags.LeftThumb) != 0 ? 64 : 0); // L3
         buttons |= (byte)((gamepad.Buttons & GamepadButtonFlags.Back) != 0 ? 128 : 0); // Back
-        
+
         writer.Write(buttons);
 
         byte buttons2 = 0;
@@ -156,7 +163,7 @@ class DSUServer
         buttons2 |= (byte)((gamepad.Buttons & GamepadButtonFlags.LeftShoulder) != 0 ? 32 : 0); // L1
         buttons2 |= (byte)(gamepad.RightTrigger > 0 ? 64 : 0); // R2
         buttons2 |= (byte)(gamepad.LeftTrigger > 0 ? 128 : 0); // L2
-        
+
         writer.Write(buttons2);
 
         writer.Write((byte)0); // HOME button (not available on Xbox controller)
@@ -211,7 +218,25 @@ class DSUServer
 
         writer.Flush();
         byte[] response = memoryStream.ToArray();
+        CRC32(response);
 
         udpClient.Send(response, response.Length, remoteEndPoint);
     }
+
+    private static unsafe void CRC32(byte[] response)
+    {
+        // Calculate CRC32
+        uint crc32 = CalculateCRC32(response);
+
+        // Replace offset 8 to 12 with CRC32
+        Array.Copy(BitConverter.GetBytes(crc32), 0, response, 8, 4);
+    }
+
+    // CRC32 Calculation Method
+    private static uint CalculateCRC32(byte[] data)
+    {
+        using var crc32 = new Crc32();
+        return BitConverter.ToUInt32(crc32.ComputeHash(data), 0);
+    }
+
 }
