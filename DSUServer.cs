@@ -1,3 +1,4 @@
+using System.IO.Hashing;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -226,17 +227,10 @@ class DSUServer
     private static unsafe void CRC32(byte[] response)
     {
         // Calculate CRC32
-        uint crc32 = CalculateCRC32(response);
+        var crc32 = Crc32.Hash(response);
 
         // Replace offset 8 to 12 with CRC32
-        Array.Copy(BitConverter.GetBytes(crc32), 0, response, 8, 4);
-    }
-
-    // CRC32 Calculation Method
-    private static uint CalculateCRC32(byte[] data)
-    {
-        using var crc32 = new Crc32();
-        return BitConverter.ToUInt32(crc32.ComputeHash(data), 0);
+        Array.Copy(crc32, 0, response, 8, 4);
     }
 
 }
