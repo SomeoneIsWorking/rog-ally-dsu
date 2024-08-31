@@ -209,7 +209,7 @@ class DSUServer
             }
         }
 
-        writer.Write(BitConverter.GetBytes((ulong)0)); // Motion data timestamp
+        writer.Write(BitConverter.GetBytes((ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())); // Motion data timestamp
         writer.Write(BitConverter.GetBytes(accelX)); // Accelerometer X
         writer.Write(BitConverter.GetBytes(accelY)); // Accelerometer Y
         writer.Write(BitConverter.GetBytes(accelZ)); // Accelerometer Z
